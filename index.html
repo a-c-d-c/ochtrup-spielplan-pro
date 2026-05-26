@@ -650,7 +650,30 @@ async function initLeagues() {
   applyLeagues();
 }
 
+function sortLeagues(leagues) {
+  function cat(label) {
+    if (/gemischt.*u8|u8/i.test(label))  return 0;
+    if (/gemischt.*u10|u10/i.test(label)) return 1;
+    if (/junior|mixed|u15/i.test(label))  return 2;
+    if (/damen/i.test(label))             return 3;
+    if (/herren/i.test(label))            return 4;
+    return 5;
+  }
+  function age(label) {
+    const m = label.match(/(?:Damen|Herren|Junioren|Mixed|Gemischt)\s+(?:U)?(\d+)(?!\s*er)/i);
+    return m ? parseInt(m[1]) : 0;
+  }
+  return [...leagues].sort((a, b) => {
+    const dc = cat(a.label) - cat(b.label);
+    if (dc !== 0) return dc;
+    const da = age(a.label) - age(b.label);
+    if (da !== 0) return da;
+    return a.label.localeCompare(b.label);
+  });
+}
+
 function applyLeagues() {
+  LEAGUES = sortLeagues(LEAGUES);
   LEAGUES.forEach((l, i) => { l.color = TEAM_PALETTE[i % TEAM_PALETTE.length]; });
   document.getElementById('dynamic-team-css').textContent = buildTeamCSS(LEAGUES);
   LEAGUES.forEach(l => { if (showTeams[l.team] === undefined) showTeams[l.team] = true; });
