@@ -1202,7 +1202,7 @@ function toggleMannschaften() {
   wrapper.classList.toggle('open', open);
 }
 
-function refreshData() { loadAllData(); }
+async function refreshData() { localStorage.removeItem('spielplan-leagues'); await initLeagues(); await loadAllData(); }
 
 /* ── Tabellen-Ansicht ──────────────────────────────────────── */
 function parseStandingsTable(html) {
