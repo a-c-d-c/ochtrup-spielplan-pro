@@ -620,8 +620,13 @@ function buildTeamButtons() {
     btn.className = 'btn btn-' + l.team + (showTeams[l.team] !== false ? ' on' : '');
     btn.id        = 'btn-' + l.team;
     btn.innerHTML = '<span>' + formatTeamLabel(l.label) + '</span><span class="team-btn-rank" id="rank-' + l.team + '"></span>';
-    btn.querySelector('.team-btn-rank').addEventListener('click', e => { e.stopPropagation(); if (l.rank) showTable(l.team); });
-    btn.addEventListener('click', () => toggleTeam(l.team));
+    btn.querySelector('.team-btn-rank').addEventListener('click', () => {
+      if (!l.rank) return;
+      const row = document.getElementById('team-row');
+      if (row && row.classList.contains('visible')) toggleMannschaften();
+      showTable(l.team);
+    });
+    btn.addEventListener('click', e => { if (!e.target.classList.contains('team-btn-rank')) toggleTeam(l.team); });
     container.appendChild(btn);
   });
   const refresh = document.createElement('button');
