@@ -968,9 +968,13 @@ async function loadAllData() {
 
   const ui = document.getElementById('update-info');
   const now = new Date();
+  const loaded = LEAGUES.filter(l => leagueHtml[l.team]).length;
+  const missing = LEAGUES.filter(l => !leagueHtml[l.team]).map(l => l.label).join(', ');
   ui.textContent = 'Zuletzt aktualisiert: ' +
     now.toLocaleDateString('de-DE') + ' · ' +
-    now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
+    now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr · ' +
+    loaded + '/' + LEAGUES.length + ' Ligen' +
+    (missing ? ' · Fehlend: ' + missing : '');
   ui.style.display = 'block';
 }
 
