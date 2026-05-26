@@ -809,22 +809,21 @@ function parseLeague(html, league) {
 
   for (const row of doc.querySelectorAll('table tr')) {
     const cells = [...row.querySelectorAll('td')];
-    if (cells.length < 3) continue;
-
     const texts = cells.map(c => c.textContent.trim());
 
-    /* Datum aus JEDER Zeile lesen und vorwärts merken.
-       liga.nu zeigt das Datum oft nur in einer Kopfzeile, die nachfolgenden
-       Spielzeilen haben dann leere Datumszellen. */
+    /* Datum aus JEDER Zeile lesen und vorwärts merken — auch aus kurzen Kopfzeilen
+       mit weniger als 3 Zellen (z.B. bei 4er-Mannschaften auf liga.nu). */
     for (const t of texts) {
       const m = t.match(/(\d{2}\.\d{2}\.\d{4})/);
       if (m) {
         lastDateStr = m[1];
         const tm = t.match(/(\d{2}:\d{2})/);
-        lastTimeStr = tm ? tm[1] : '??:??';
+        lastTimeStr = tm ? tm[1] : (texts.find(t2 => /^\d{2}:\d{2}$/.test(t2)) || '??:??');
         break;
       }
     }
+
+    if (cells.length < 3) continue;
 
     /* Ochtrup in dieser Zeile? */
     if (!texts.some(t => t.includes('Ochtrup'))) continue;
