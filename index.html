@@ -469,7 +469,7 @@
 <div class="header">
   <div class="header-title">
     <img src="https://raw.githubusercontent.com/a-c-d-c/ochtrup-spielplan-pro/main/logo.png" class="header-logo" alt="TC 1928 Ochtrup Logo">
-    <h1>TC 1900 Ochtrup</h1>
+    <h1>TC 1928 Ochtrup</h1>
   </div>
   <p>Spielplan · Münsterland · Sommer 2026 · TEST-V3</p>
 </div>
@@ -540,26 +540,26 @@
 const CLUB_TEAMS_URL = 'https://wtv.liga.nu/cgi-bin/WebObjects/nuLigaTENDE.woa/wa/clubTeams?club=26831';
 
 const TEAM_PALETTE = [
-  [75, 100, 152],  // Schieferblau
-  [78, 128, 102],  // Staubiges Salbei
-  [162, 122, 58],  // Warmes Bernstein
-  [172, 92, 78],   // Gedämpftes Koralle
-  [108, 85, 160],  // Sanftes Violett
-  [168, 85, 110],  // Dusty Rose
-  [165, 98, 68],   // Muted Sienna
-  [152, 125, 52],  // Warmes Messing
-  [140, 65, 90],   // Gedämpftes Burgundy
-  [118, 92, 165],  // Lavendel
-  [58, 125, 135],  // Staubtürkis
-  [62, 110, 150],  // Stahlblau
-  [155, 122, 45],  // Warmes Gold
-  [85, 128, 105],  // Meerwassergrün
-  [110, 128, 65],  // Olive
-  [62, 118, 152],  // Muted Azure
-  [90, 80, 155],   // Muted Indigo
-  [138, 75, 135],  // Gedämpftes Pflaume
-  [60, 126, 142],  // Schiefertürkis
-  [95, 108, 145],  // Pewter Blue
+  [90, 130, 210],  // Blau
+  [85, 175, 135],  // Smaragdgrün
+  [215, 160, 65],  // Bernstein
+  [220, 110, 90],  // Koralle
+  [140, 110, 215], // Violett
+  [215, 105, 145], // Pink
+  [210, 130, 80],  // Orange
+  [200, 165, 60],  // Gold
+  [180, 85, 120],  // Burgundy
+  [150, 120, 220], // Lavendel
+  [75, 175, 190],  // Türkis
+  [80, 150, 210],  // Himmelblau
+  [205, 160, 55],  // Ocker
+  [110, 175, 140], // Salbei
+  [145, 175, 80],  // Olive
+  [80, 160, 215],  // Azure
+  [120, 105, 210], // Indigo
+  [180, 100, 180], // Pflaume
+  [80, 170, 190],  // Ozean
+  [125, 150, 205], // Graublau
 ];
 
 let LEAGUES = [];
@@ -586,19 +586,19 @@ function parseClubTeams(html) {
 }
 
 function buildTeamCSS(leagues) {
-  const base = [15, 19, 33];
+  const base = [18, 22, 42];
   function blend(base, team, a) {
     return base.map((v,i) => Math.min(255, Math.round(v*(1-a) + team[i]*a)));
   }
   function toHex(rgb) { return '#' + rgb.map(x=>x.toString(16).padStart(2,'0')).join(''); }
   return leagues.map(l => {
     const [r,g,b] = l.color;
-    const br = Math.round(r*0.45+148), bg = Math.round(g*0.45+148), bb = Math.round(b*0.45+148);
+    const br = Math.round(r*0.5+130), bg = Math.round(g*0.5+130), bb = Math.round(b*0.5+130);
     const bright  = '#' + [br,bg,bb].map(x=>Math.min(255,x).toString(16).padStart(2,'0')).join('');
-    const cardBg  = toHex(blend(base, [r,g,b], 0.22));
-    const border  = toHex(blend(base, [r,g,b], 0.50));
-    const tagBg   = toHex(blend(base, [r,g,b], 0.38));
-    return `.btn-${l.team}.on{border-color:${bright};background:${toHex(blend(base,[r,g,b],0.20))};color:#fff;}` +
+    const cardBg  = toHex(blend(base, [r,g,b], 0.38));
+    const border  = toHex(blend(base, [r,g,b], 0.72));
+    const tagBg   = toHex(blend(base, [r,g,b], 0.55));
+    return `.btn-${l.team}.on{border-color:${bright};background:${toHex(blend(base,[r,g,b],0.32))};color:#fff;}` +
            `.card.${l.team}{background:${cardBg};border-color:${border};}` +
            `.tag-${l.team}{background:${tagBg};color:#fff;font-weight:700;border:1px solid ${border};}`;
   }).join('\n');
