@@ -605,6 +605,12 @@ function buildTeamCSS(leagues) {
   }).join('\n');
 }
 
+function formatTeamLabel(label) {
+  const m = label.match(/^(.*?)\s+((?:Kreis|Bezirks|M\u00fcnsterland|Verbands|Landes)\S*.*)$/i);
+  if (m) return esc(m[1]) + '<br><span style="font-size:0.78rem;opacity:0.8">' + esc(m[2]) + '</span>';
+  return esc(label);
+}
+
 function buildTeamButtons() {
   const container = document.getElementById('team-btns-container');
   container.innerHTML = '';
@@ -612,7 +618,7 @@ function buildTeamButtons() {
     const btn = document.createElement('button');
     btn.className = 'btn btn-' + l.team + (showTeams[l.team] !== false ? ' on' : '');
     btn.id        = 'btn-' + l.team;
-    btn.innerHTML = '<span>' + esc(l.label) + '</span><span class="team-btn-rank" id="rank-' + l.team + '">' + (l.rank ? 'Rang ' + l.rank : '') + '</span>';
+    btn.innerHTML = '<span>' + formatTeamLabel(l.label) + '</span><span class="team-btn-rank" id="rank-' + l.team + '">' + (l.rank ? 'Rang ' + l.rank : '') + '</span>';
     btn.addEventListener('click', () => toggleTeam(l.team));
     container.appendChild(btn);
   });
