@@ -867,7 +867,7 @@ function extractOchtrupRank(html) {
   for (const row of table.querySelectorAll('tr')) {
     if (row.textContent.includes('Ochtrup')) {
       const cells = [...row.querySelectorAll('td')];
-      return cells[0]?.textContent.trim() || null;
+      return cells[1]?.textContent.trim() || null;
     }
   }
   return null;
