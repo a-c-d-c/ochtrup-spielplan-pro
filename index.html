@@ -174,7 +174,8 @@
   .btn-mannschaften:hover { background: #1a1d2e; color: #9095b0; border-color: #444a68; }
   .btn-mannschaften.on { color: #fff; font-weight: 700; border-color: #9095b0; background: rgba(144,149,176,0.08); }
   .team-row { display: none; }
-  .team-row .btn { color: #9095b0; width: 100%; text-align: center; padding: 10px 13px; font-size: 0.88rem; white-space: normal; }
+  .team-row .btn { color: #9095b0; width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 10px 13px; font-size: 0.88rem; white-space: normal; }
+  .team-btn-rank { font-size: 0.75rem; opacity: 0.7; white-space: nowrap; margin-left: 8px; flex-shrink: 0; }
   .team-row .btn.on { color: #fff; }
   .team-row.visible { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
   .btn-close-teams { background: transparent; border: 1px solid #2e3150; border-radius: 20px; color: #555a7a; font-size: 0.78rem; font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 7px 0; cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em; width: 100%; margin-top: 4px; transition: all 0.15s; }
@@ -611,7 +612,7 @@ function buildTeamButtons() {
     const btn = document.createElement('button');
     btn.className = 'btn btn-' + l.team + (showTeams[l.team] !== false ? ' on' : '');
     btn.id        = 'btn-' + l.team;
-    btn.textContent = l.label;
+    btn.innerHTML = '<span>' + esc(l.label) + '</span><span class="team-btn-rank" id="rank-' + l.team + '">' + (l.rank ? 'Rang ' + l.rank : '') + '</span>';
     btn.addEventListener('click', () => toggleTeam(l.team));
     container.appendChild(btn);
   });
@@ -860,6 +861,18 @@ function parseLeague(html, league) {
 }
 
 /* ── Laden ─────────────────────────────────────────────────── */
+function extractOchtrupRank(html) {
+  const table = parseStandingsTable(html);
+  if (!table) return null;
+  for (const row of table.querySelectorAll('tr')) {
+    if (row.textContent.includes('Ochtrup')) {
+      const cells = [...row.querySelectorAll('td')];
+      return cells[0]?.textContent.trim() || null;
+    }
+  }
+  return null;
+}
+
 async function loadAllData() {
   const errBanner = document.getElementById('error-banner');
   const loadBanner = document.getElementById('loading-banner');
@@ -882,6 +895,9 @@ async function loadAllData() {
       fetchURL(league.url)
         .then(html => {
           leagueHtml[league.team] = html;
+          league.rank = extractOchtrupRank(html);
+          const rankEl = document.getElementById('rank-' + league.team);
+          if (rankEl && league.rank) rankEl.textContent = 'Rang ' + league.rank;
           allMatches = [...allMatches, ...parseLeague(html, league)]
             .sort((a, b) => a.date - b.date);
           renderNextMatch();
