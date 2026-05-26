@@ -542,32 +542,32 @@
 /* ── Dynamische Mannschaftsliste ───────────────────────────── */
 const CLUB_TEAMS_URL = 'https://wtv.liga.nu/cgi-bin/WebObjects/nuLigaTENDE.woa/wa/clubTeams?club=26831';
 
-// Kategorie-Paletten
+// Kategorie-Paletten — hell → dunkel (jung → alt)
 const PALETTE_JUGEND = [
-  [60, 120, 220],  // kräftiges Blau  (U8)
-  [80, 155, 240],  // helles Blau     (U10)
-  [45, 100, 195],  // tiefes Blau     (U15 classic)
-  [95, 170, 245],  // Himmelblau      (U15 2er)
-  [65, 135, 210],  // Mittelblau      (Mixed U15)
+  [155, 210, 255], // U8:            sehr helles Blau
+  [105, 175, 248], // U10:           helles Blau
+  [ 65, 138, 228], // U15 classic:   mittleres Blau
+  [ 35, 102, 200], // U15 2er:       Blau
+  [ 18,  70, 172], // Mixed U15:     dunkles Blau
 ];
 const PALETTE_DAMEN = [
-  [230, 90, 145],  // Pink
-  [245, 130, 170], // Hellrosa
-  [210, 70, 120],  // Tiefpink
-  [240, 150, 180], // Rosé
-  [220, 100, 160], // Magenta-Pink
-  [235, 115, 155], // Mittelpink
+  [255, 178, 205], // Damen 4er:     sehr helles Pink
+  [248, 138, 172], // Damen 30 BZ:   helles Pink
+  [235, 100, 148], // Damen 30 KL:   mittleres Pink
+  [215,  65, 122], // Damen 40:      dunkles Pink
+  [188,  38,  95], // Damen 50:      tiefes Rosé
+  [158,  22,  70], // Damen 60:      dunkles Rosé
 ];
 const PALETTE_HERREN = [
-  [60, 170, 90],   // Frischgrün
-  [50, 150, 75],   // Waldgrün
-  [80, 190, 110],  // Hellgrün
-  [45, 130, 65],   // Dunkelgrün
-  [90, 205, 125],  // Mintgrün
-  [55, 155, 85],   // Laubgrün
-  [75, 180, 100],  // Grasgrün
-  [40, 120, 60],   // Tiefgrün
-  [70, 165, 95],   // Mittelgrün
+  [130, 230, 148], // Herren 4er:    sehr helles Grün
+  [ 92, 208, 118], // Herren 30 KL:  helles Grün
+  [ 65, 188,  95], // Herren 30 K3:  mittel-hell
+  [ 42, 168,  75], // Herren 40 BK:  mittleres Grün
+  [ 25, 148,  58], // Herren 40 KL:  mittel-dunkel
+  [ 16, 130,  46], // Herren 50 KL:  dunkles Grün
+  [ 10, 112,  36], // Herren 50 D:   dunkler
+  [  6,  94,  28], // Herren 60:     sehr dunkel
+  [  3,  78,  22], // Herren 65 D:   tiefstes Grün
 ];
 function teamColor(label, catIdx) {
   if (/gemischt|junior|mixed|u8|u10|u15/i.test(label)) return PALETTE_JUGEND[catIdx % PALETTE_JUGEND.length];
