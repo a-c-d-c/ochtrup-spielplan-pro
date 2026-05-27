@@ -23,9 +23,10 @@
     margin: 0 auto;
   }
 
-  .header { text-align: center; margin-bottom: 20px; }
+  .header { text-align: center; margin-bottom: 20px; position: relative; }
   .header-title { display: flex; align-items: center; justify-content: center; gap: 12px; }
   .btn-info {
+    position: absolute; top: 0; left: 0;
     width: 28px; height: 28px;
     border-radius: 50%;
     border: 1px solid #3a3f60;
@@ -38,7 +39,6 @@
     display: inline-flex; align-items: center; justify-content: center;
     font-family: Georgia, serif;
     transition: border-color 0.15s, color 0.15s;
-    margin-top: 4px;
   }
   .btn-info:hover { border-color: #9095b0; color: #fff; }
   #info-view { display: none; }
@@ -516,12 +516,12 @@
 <body>
 
 <div class="header">
+  <button class="btn-info" onclick="showInfo()" title="Info">i</button>
   <div class="header-title">
     <img src="https://raw.githubusercontent.com/a-c-d-c/ochtrup-spielplan-pro/main/logo.png" class="header-logo" alt="TC 1928 Ochtrup Logo">
     <h1>TC 1928 Ochtrup</h1>
   </div>
   <p>Spielplan · Münsterland · Sommer 2026</p>
-  <button class="btn-info" onclick="showInfo()" title="Info">i</button>
 </div>
 
 <!-- Nächstes Spiel -->
