@@ -26,7 +26,7 @@
   .header { text-align: center; margin-bottom: 20px; position: relative; }
   .header-title { display: flex; align-items: center; justify-content: center; gap: 12px; }
   .btn-info {
-    position: absolute; top: 0; left: 0;
+    position: absolute; top: 0; right: 0;
     width: 28px; height: 28px;
     border-radius: 50%;
     border: 1px solid #3a3f60;
@@ -541,7 +541,7 @@
 </div>
 
 <!-- Filter-Buttons -->
-<div class="controls">
+<div class="controls" id="controls-bar">
   <div class="controls-row">
     <button class="btn btn-filter"    id="btn-vergangen" onclick="toggleFilter('showPast')">Vergangen</button>
     <button class="btn btn-filter on" id="btn-aktuell"   onclick="toggleFilter('showFuture')">Aktuell</button>
@@ -1372,6 +1372,7 @@ function backToList() {
   document.getElementById('info-view').style.display = 'none';
   document.getElementById('matches-container').style.display = '';
   document.getElementById('update-info').style.display = '';
+  document.getElementById('controls-bar').style.display = '';
 }
 
 async function showInfo() {
@@ -1379,6 +1380,7 @@ async function showInfo() {
   document.getElementById('update-info').style.display = 'none';
   document.getElementById('detail-view').style.display = 'none';
   document.getElementById('report-view').style.display = 'none';
+  document.getElementById('controls-bar').style.display = 'none';
   document.getElementById('info-view').style.display = 'block';
   window.scrollTo(0, 0);
   const el = document.getElementById('info-content');
