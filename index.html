@@ -1266,6 +1266,7 @@ function toggleMannschaften() {
   const open    = row.classList.toggle('visible');
   btn.classList.toggle('on', open);
   wrapper.classList.toggle('open', open);
+  if (!open) backToList();
 }
 
 async function refreshData() { localStorage.removeItem(LS_LEAGUES); await initLeagues(); await loadAllData(); }
