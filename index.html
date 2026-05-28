@@ -752,6 +752,7 @@ const LS_STATE       = 'spielplan-state';
 const LS_AUSWAHL     = 'spielplan-meine-auswahl';
 const LS_LEAGUES     = 'spielplan-leagues';
 const LS_THEME       = 'spielplan-theme';
+const LS_STARTS      = 'spielplan-starts';
 
 const LIGHT_THEME_CSS = `
   body { background: #f0f2f8; }
@@ -1106,6 +1107,18 @@ function loadState() {
 function saveState() {
   localStorage.setItem(LS_STATE, JSON.stringify({ showPast, showFuture, showHome, showAway, showTeams, selectMode }));
 }
+
+/* ── Spenden-Banner: jeden 3. Start anzeigen ────────────────── */
+(function() {
+  const count = (parseInt(localStorage.getItem(LS_STARTS) || '0') + 1);
+  localStorage.setItem(LS_STARTS, count);
+  if (count % 3 !== 1) {
+    const b = document.getElementById('donate-banner');
+    if (b) b.style.display = 'none';
+    const m = document.getElementById('main-content');
+    if (m) { m.style.opacity = '1'; m.style.pointerEvents = ''; }
+  }
+})();
 
 const _state    = loadState();
 let showPast    = _state.showPast;
