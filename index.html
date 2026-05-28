@@ -295,15 +295,20 @@
     border-left: 3px solid #009cde;
     border-radius: 10px;
     text-align: center;
+    transition: opacity 3s ease;
   }
-  .donate-logo-row { margin-bottom: 12px; }
+  #main-content { transition: opacity 3s ease; }
+  .donate-logo-row { margin-bottom: 12px; text-align: center; }
   .donate-logo-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     background: #ffffff;
-    padding: 5px 12px;
+    padding: 5px 14px;
     border-radius: 6px;
-    line-height: 0;
+    line-height: 1;
   }
+  .pp-pay { font-family: 'Arial Black', Arial, sans-serif; font-weight: 900; font-size: 1.25rem; color: #003087; }
+  .pp-pal { font-family: 'Arial Black', Arial, sans-serif; font-weight: 900; font-size: 1.25rem; color: #009cde; }
   .donate-text {
     margin: 0 0 14px;
     font-size: 0.85rem;
@@ -659,10 +664,7 @@
 <div id="donate-banner">
   <div class="donate-logo-row">
     <span class="donate-logo-pill">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 28" height="24" aria-label="PayPal">
-        <text x="2" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#003087">Pay</text>
-        <text x="42" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#009cde">Pal</text>
-      </svg>
+      <span class="pp-pay">Pay</span><span class="pp-pal">Pal</span>
     </span>
   </div>
   <p class="donate-text">Diese App ist kostenlos &amp; werbefrei.<br>Wenn sie dir nützlich ist, freue ich mich sehr über eine kleine Unterstützung! ☕</p>
@@ -831,9 +833,16 @@ function unlockBodyScroll() {
 
 function closeDonate() {
   const b = document.getElementById('donate-banner');
-  if (b) b.style.display = 'none';
   const m = document.getElementById('main-content');
-  if (m) m.style.display = '';
+  if (b) {
+    b.style.opacity = '0';
+    setTimeout(() => { b.style.display = 'none'; }, 3000);
+  }
+  if (m) {
+    m.style.opacity = '0';
+    m.style.display = '';
+    requestAnimationFrame(() => requestAnimationFrame(() => { m.style.opacity = '1'; }));
+  }
 }
 
 function setTheme(theme) {
