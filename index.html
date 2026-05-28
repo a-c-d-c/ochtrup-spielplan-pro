@@ -286,6 +286,57 @@
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
+  /* ── Spenden-Banner ── */
+  #donate-banner {
+    margin: 0 0 16px;
+    padding: 18px 16px 14px;
+    background: rgba(0, 48, 135, 0.10);
+    border: 1px solid rgba(0, 112, 186, 0.30);
+    border-left: 3px solid #009cde;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .donate-logo-row { margin-bottom: 10px; }
+  .donate-text {
+    margin: 0 0 14px;
+    font-size: 0.85rem;
+    color: #b0b8d8;
+    line-height: 1.5;
+  }
+  .btn-donate-main {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 16px;
+    background: #ffc43a;
+    color: #003087;
+    font-weight: 800;
+    font-size: 0.95rem;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-donate-main:active { background: #ffb020; }
+  .btn-donate-later {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    color: #555a7a;
+    font-size: 0.78rem;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.15s;
+  }
+  @media (hover: hover) {
+    .btn-donate-main:hover { background: #ffb020; }
+    .btn-donate-later:hover { color: #8090b8; }
+  }
   .detail-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.4rem;
@@ -610,6 +661,19 @@
   <div class="nm-teams" id="nm-teams"></div>
 </div>
 
+<!-- Spenden-Banner -->
+<div id="donate-banner">
+  <div class="donate-logo-row">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 28" height="24" aria-label="PayPal">
+      <text x="2" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#e8eaf0">Pay</text>
+      <text x="42" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#009cde">Pal</text>
+    </svg>
+  </div>
+  <p class="donate-text">Diese App ist kostenlos &amp; werbefrei.<br>Wenn sie dir nützlich ist, freue ich mich sehr über eine kleine Unterstützung! ☕</p>
+  <a class="btn-donate-main" href="https://www.paypal.com/donate?business=info%40ansgar-nitsche.de&amount=1.50&currency_code=EUR&no_note=1" target="_blank" rel="noopener">☕ Jetzt 1,50 € spenden</a>
+  <button class="btn-donate-later" onclick="closeDonate()">Vielleicht später →</button>
+</div>
+
 <!-- Filter-Buttons -->
 <div class="controls" id="controls-bar">
   <div class="controls-row">
@@ -729,6 +793,9 @@ const LIGHT_THEME_CSS = `
     .btn-info:hover, .btn-settings:hover { border-color: #3a4080; color: #1a1d2e; background: rgba(60,70,140,0.18); }
     #info-view .btn-back:hover, #settings-view .btn-back:hover { color: #0f1020; border-color: #3a4080; background: rgba(60,70,140,0.18); }
   }
+  #donate-banner { background: rgba(0,48,135,0.06); border-color: rgba(0,112,186,0.25); }
+  .donate-text { color: #3a4060; }
+  .btn-donate-later { color: #707a9a; }
 `;
 
 let _scrollY = 0;
@@ -745,6 +812,11 @@ function unlockBodyScroll() {
   document.body.style.overflow = '';
   document.body.style.width = '';
   window.scrollTo(0, _scrollY);
+}
+
+function closeDonate() {
+  const b = document.getElementById('donate-banner');
+  if (b) b.style.display = 'none';
 }
 
 function setTheme(theme) {
