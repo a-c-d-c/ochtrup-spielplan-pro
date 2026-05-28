@@ -1112,7 +1112,7 @@ function saveState() {
 (function() {
   const count = (parseInt(localStorage.getItem(LS_STARTS) || '0') + 1);
   localStorage.setItem(LS_STARTS, count);
-  if (count % 3 !== 1) {
+  if (count < 4 || count % 3 !== 1) {
     const b = document.getElementById('donate-banner');
     if (b) b.style.display = 'none';
     const m = document.getElementById('main-content');
