@@ -516,6 +516,11 @@
   body { background: #f0f2f8; }
   .header h1 { color: #1a1d2e; }
   .header p { color: #5a5f7a; }
+  .nm-label { color: #fff; }
+  .nm-days { color: #fff; }
+  .nm-unit { color: #fff; }
+  .next-match-box.no-match { background: #c8cde4; border-color: #5060a0; color: #1a1d2e; }
+  .next-match-box.no-match .nm-label { color: #1a1d2e; font-weight: 700; }
   .btn-filter { border-color: #b0b5cc; color: #3a3f60; }
   .btn-filter:hover { background: #e0e4f0; color: #1a1d2e; border-color: #7a7f9a; }
   .btn-filter.on { color: #1a1d2e; font-weight: 700; border-color: #5060a0; background: #c8cde4; }
@@ -1144,6 +1149,7 @@ function renderNextMatch() {
     nmT.style.flexDirection = 'column'; nmT.style.justifyContent = 'center'; nmT.style.marginTop = '-3rem';
     box.classList.remove('home-game');
     LEAGUES.forEach(l => box.classList.remove(l.team));
+    box.classList.add('no-match');
     box.style.display = 'flex';
     return;
   }
@@ -1166,12 +1172,14 @@ function renderNextMatch() {
     nmT2.style.flexDirection = 'column'; nmT2.style.justifyContent = 'center'; nmT2.style.marginTop = '-3rem';
     box.classList.remove('home-game');
     LEAGUES.forEach(l => box.classList.remove(l.team));
+    box.classList.add('no-match');
     box.style.display = 'flex';
     return;
   }
 
   const nmTr = document.getElementById('nm-teams');
   nmTr.style.flexDirection = ''; nmTr.style.justifyContent = ''; nmTr.style.marginTop = '';
+  box.classList.remove('no-match');
   LEAGUES.forEach(l => box.classList.remove(l.team));
   box.classList.add(next.team);
   box.classList.toggle('home-game', next.isHome);
