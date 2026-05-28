@@ -703,15 +703,15 @@
   </div>
   <p class="donate-text">Diese App ist kostenlos &amp; werbefrei.<br>Wenn sie dir nützlich ist, freue ich mich sehr über eine kleine Unterstützung! ☕</p>
   <div class="donate-amounts">
-    <button class="btn-amount on" onclick="setDonateAmount(1.50, this)">1,50 €</button>
-    <button class="btn-amount"    onclick="setDonateAmount(2.50, this)">2,50 €</button>
+    <button class="btn-amount"    onclick="setDonateAmount(1.50, this)">1,50 €</button>
+    <button class="btn-amount on" onclick="setDonateAmount(2.50, this)">2,50 €</button>
     <button class="btn-amount"    onclick="setDonateAmount('custom', this)">Anderer Betrag</button>
   </div>
   <div class="donate-custom-row" id="donate-custom-row">
     <input type="number" id="donate-custom-input" min="0.50" step="0.50" placeholder="0,00" oninput="updateDonateBtn()">
     <span class="donate-custom-euro">€</span>
   </div>
-  <a class="btn-donate-main" id="btn-donate-main" href="https://www.paypal.me/AnsgarNitsche/1.50" target="_blank" rel="noopener">☕ Jetzt 1,50 € spenden</a>
+  <a class="btn-donate-main" id="btn-donate-main" href="https://www.paypal.me/AnsgarNitsche/2.50" target="_blank" rel="noopener">☕ Jetzt 2,50 € spenden</a>
   <button class="btn-donate-later" onclick="closeDonate()">Vielleicht später →</button>
 </div>
 
@@ -878,7 +878,7 @@ function unlockBodyScroll() {
   window.scrollTo(0, _scrollY);
 }
 
-let _donateAmount = 1.50;
+let _donateAmount = 2.50;
 let _donateCustom = false;
 
 function setDonateAmount(val, btn) {
