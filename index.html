@@ -701,7 +701,7 @@
       <span class="pp-pay">Pay</span><span class="pp-pal">Pal</span>
     </span>
   </div>
-  <p class="donate-text">Diese App ist kostenlos &amp; werbefrei.<br>Wenn sie dir nützlich ist, freue ich mich sehr über eine kleine Unterstützung! ☕</p>
+  <p class="donate-text" id="donate-text"></p>
   <div class="donate-amounts">
     <button class="btn-amount"    onclick="setDonateAmount(1.50, this)">1,50 €</button>
     <button class="btn-amount on" onclick="setDonateAmount(2.50, this)">2,50 €</button>
@@ -1209,6 +1209,18 @@ function saveState() {
 }
 
 /* ── Spenden-Banner: jeden 3. Start anzeigen ────────────────── */
+const DONATE_TEXTS = [
+  'Diese App ist kostenlos & werbefrei.\nWenn sie dir nützlich ist, freue ich mich sehr über eine kleine Unterstützung! ☕',
+  'Diese App läuft auf Koffein — meins wird knapp. ☕',
+  'Kannst du heute auf eine Cola verzichten?\nIch freu mich drüber! 🥤',
+  'Kein Aufschlagfehler, keine Werbung —\nnur eine kleine Bitte um Unterstützung. 🎾',
+  'Werbung wäre die andere Option gewesen.\nDu siehst, wofür ich mich entschieden hab.',
+  'Der Spielplan ist gratis.\nDer Entwickler trinkt trotzdem Kaffee. ☕',
+  'Für jeden Match-Tiebreak deiner Mannschaft —\nvielleicht ein kleiner Kaffee?',
+  'Programmieren macht Durst. Und Hunger. Und Müdigkeit. 😅',
+  'Ein Ass auf dem Platz —\nein Kaffee für den Entwickler?',
+];
+
 (function() {
   const count = (parseInt(localStorage.getItem(LS_STARTS) || '0') + 1);
   localStorage.setItem(LS_STARTS, count);
@@ -1217,6 +1229,10 @@ function saveState() {
     if (b) b.style.display = 'none';
     const m = document.getElementById('main-content');
     if (m) { m.style.opacity = '1'; m.style.pointerEvents = ''; }
+  } else {
+    const idx = Math.floor((count - 4) / 3) % DONATE_TEXTS.length;
+    const el = document.getElementById('donate-text');
+    if (el) el.innerHTML = DONATE_TEXTS[idx].replace(/\n/g, '<br>');
   }
 })();
 
