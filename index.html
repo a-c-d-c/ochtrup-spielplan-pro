@@ -712,8 +712,13 @@ function buildTeamCSS(leagues) {
     const border  = toHex(blend(base, [r,g,b], 0.72));
     const tagBg   = toHex(blend(base, [r,g,b], 0.55));
     const dimText = '#' + blend([144,149,176],[r,g,b],0.45).map(x=>x.toString(16).padStart(2,'0')).join('');
-    return `.btn-${l.team}{border-color:rgba(${r},${g},${b},0.28);background:rgba(${r},${g},${b},0.07);color:${dimText};}` +
-           `.btn-${l.team}.on{border-color:${bright};background:${toHex(blend(base,[r,g,b],0.32))};color:#fff;}` +
+    const btnBg  = `rgba(${r},${g},${b},0.07)`;
+    const btnBdr = `rgba(${r},${g},${b},0.28)`;
+    const onBg   = toHex(blend(base,[r,g,b],0.32));
+    return `.btn-${l.team}{border-color:${btnBdr};background:${btnBg};color:${dimText};}` +
+           `.btn-${l.team}.on{border-color:${bright};background:${onBg};color:#fff;}` +
+           `.team-row .btn-${l.team}:hover{border-color:${btnBdr};background:${btnBg};color:${dimText};}` +
+           `.team-row .btn-${l.team}.on:hover{border-color:${bright};background:${onBg};color:#fff;}` +
            `.card.${l.team},.next-match-box.${l.team}{background:${cardBg};border-color:${border};}` +
            `.tag-${l.team}{background:${tagBg};color:#fff;font-weight:700;border:1px solid ${border};}`;
   }).join('\n');
