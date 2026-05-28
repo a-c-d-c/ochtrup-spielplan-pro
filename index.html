@@ -296,7 +296,14 @@
     border-radius: 10px;
     text-align: center;
   }
-  .donate-logo-row { margin-bottom: 10px; }
+  .donate-logo-row { margin-bottom: 12px; }
+  .donate-logo-pill {
+    display: inline-block;
+    background: #ffffff;
+    padding: 5px 12px;
+    border-radius: 6px;
+    line-height: 0;
+  }
   .donate-text {
     margin: 0 0 14px;
     font-size: 0.85rem;
@@ -651,15 +658,19 @@
 <!-- Spenden-Banner -->
 <div id="donate-banner">
   <div class="donate-logo-row">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 28" height="24" aria-label="PayPal">
-      <text x="2" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#e8eaf0">Pay</text>
-      <text x="42" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#009cde">Pal</text>
-    </svg>
+    <span class="donate-logo-pill">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 28" height="24" aria-label="PayPal">
+        <text x="2" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#003087">Pay</text>
+        <text x="42" y="22" font-family="'Arial Black','Arial',sans-serif" font-weight="900" font-size="22" fill="#009cde">Pal</text>
+      </svg>
+    </span>
   </div>
   <p class="donate-text">Diese App ist kostenlos &amp; werbefrei.<br>Wenn sie dir nützlich ist, freue ich mich sehr über eine kleine Unterstützung! ☕</p>
   <a class="btn-donate-main" href="https://www.paypal.com/donate?business=info%40ansgar-nitsche.de&amount=1.50&currency_code=EUR&no_note=1" target="_blank" rel="noopener">☕ Jetzt 1,50 € spenden</a>
   <button class="btn-donate-later" onclick="closeDonate()">Vielleicht später →</button>
 </div>
+
+<div id="main-content" style="display:none">
 
 <!-- Nächstes Spiel -->
 <div id="next-match-box" class="next-match-box">
@@ -698,11 +709,12 @@
   </div>
 </div>
 
-
 <div id="error-banner"    class="error-msg"  style="display:none"></div>
 <div id="loading-banner"  class="loading-row"><div class="spinner"></div>Spieldaten werden geladen …</div>
 <div id="matches-container"></div>
 <div id="update-info"     class="update-info" style="display:none"></div>
+
+</div><!-- /#main-content -->
 
 <div id="detail-view">
   <div class="detail-header">
@@ -820,6 +832,8 @@ function unlockBodyScroll() {
 function closeDonate() {
   const b = document.getElementById('donate-banner');
   if (b) b.style.display = 'none';
+  const m = document.getElementById('main-content');
+  if (m) m.style.display = '';
 }
 
 function setTheme(theme) {
