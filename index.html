@@ -672,7 +672,7 @@
   <button class="btn-donate-later" onclick="closeDonate()">Vielleicht später →</button>
 </div>
 
-<div id="main-content" style="display:none">
+<div id="main-content" style="opacity:0;pointer-events:none">
 
 <!-- Nächstes Spiel -->
 <div id="next-match-box" class="next-match-box">
@@ -839,9 +839,8 @@ function closeDonate() {
     setTimeout(() => { b.style.display = 'none'; }, 3000);
   }
   if (m) {
-    m.style.opacity = '0';
-    m.style.display = '';
-    requestAnimationFrame(() => requestAnimationFrame(() => { m.style.opacity = '1'; }));
+    m.style.pointerEvents = '';
+    m.style.opacity = '1';
   }
 }
 
