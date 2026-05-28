@@ -295,7 +295,9 @@
     border-left: 3px solid #009cde;
     border-radius: 10px;
     text-align: center;
-    transition: opacity 3s ease;
+    max-height: 400px;
+    overflow: hidden;
+    transition: opacity 3s ease, max-height 3s ease, padding 3s ease, margin 3s ease, border-width 3s ease;
   }
   #main-content { transition: opacity 3s ease; }
   .donate-logo-row { margin-bottom: 12px; text-align: center; }
@@ -836,7 +838,11 @@ function closeDonate() {
   const m = document.getElementById('main-content');
   if (b) {
     b.style.opacity = '0';
-    setTimeout(() => { b.style.display = 'none'; }, 3000);
+    b.style.maxHeight = '0';
+    b.style.padding = '0';
+    b.style.margin = '0';
+    b.style.borderWidth = '0';
+    b.style.pointerEvents = 'none';
   }
   if (m) {
     m.style.pointerEvents = '';
