@@ -247,12 +247,10 @@
   /* ── 3-Button Mannschaftsauswahl ── */
   .team-select-row { position: relative; display: flex; gap: 6px; margin-bottom: 8px; }
   .team-select-row .btn { flex: 1; min-width: 0; text-align: center; line-height: 1.35; white-space: normal; padding-top: 11px; padding-bottom: 11px; }
-  .team-select-row.favoriten-open #btn-alle-mannschaften,
-  .team-select-row.favoriten-open #btn-meine-favoriten { visibility: hidden; }
   .btn-alle-mannschaften { color: rgba(110,185,145,0.45); border-color: rgba(110,185,145,0.22); -webkit-touch-callout: none; touch-action: none; }
   .btn-alle-mannschaften.on { color: #82c9a0 !important; border-color: #4a9068 !important; background: rgba(80,150,110,0.15) !important; font-weight: 700; }
-  .btn-favoriten-editor { color: #9095b0; border-color: #2e3150; -webkit-touch-callout: none; }
-  .btn-favoriten-editor.open { color: #fff; border-color: #9095b0; background: rgba(144,149,176,0.08); }
+  .btn-favoriten-editor { color: #9095b0; border-color: #2e3150; -webkit-touch-callout: none; margin: 0 6px; }
+  .btn-favoriten-editor.open { color: #fff; border-color: #9095b0; background: rgba(144,149,176,0.12); }
   .btn-meine-favoriten { color: rgba(190,155,70,0.45); border-color: rgba(190,155,70,0.22); -webkit-touch-callout: none; touch-action: none; }
   .btn-meine-favoriten.on { color: #d4b054 !important; border-color: #a07830 !important; background: rgba(170,130,50,0.18) !important; font-weight: 700; }
   .team-btn-rank { font-size: 0.75rem; opacity: 0.7; white-space: nowrap; margin-left: 8px; flex-shrink: 0; cursor: pointer; text-decoration: underline dotted; }
@@ -2352,8 +2350,6 @@ function applyStateToButtons() {
 }
 
 let _favoritenOpen = false;
-let _favoritenBtnLeft = 0;
-let _favoritenBtnRight = 0;
 
 function toggleFavoriten() {
   if (_favoritenOpen) closeFavoriten(); else openFavoriten();
@@ -2361,7 +2357,6 @@ function toggleFavoriten() {
 
 function openFavoriten() {
   _favoritenOpen = true;
-  const row  = document.getElementById('team-select-row');
   const btn  = document.getElementById('btn-favoriten-editor');
   const card = document.getElementById('favoriten-card');
 
@@ -2377,29 +2372,8 @@ function openFavoriten() {
   }
   meineAuswahlActive = true;
 
-  // Snapshot button position for animation
-  const rowRect = row.getBoundingClientRect();
-  const btnRect = btn.getBoundingClientRect();
-  _favoritenBtnLeft  = btnRect.left  - rowRect.left;
-  _favoritenBtnRight = rowRect.right - btnRect.right;
-
-  // Switch to absolute, matching current flex position
-  row.classList.add('favoriten-open');
-  btn.style.position   = 'absolute';
-  btn.style.zIndex     = '3';
-  btn.style.top        = '0';
-  btn.style.bottom     = '0';
-  btn.style.left       = _favoritenBtnLeft + 'px';
-  btn.style.right      = _favoritenBtnRight + 'px';
-  btn.innerHTML        = 'Favoriten&shy;liste schließen';
+  btn.innerHTML = 'Favoriten&shy;liste schließen';
   btn.classList.add('open');
-
-  // Animate btn to full row width
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    btn.style.transition = 'left 0.8s ease, right 0.8s ease';
-    btn.style.left  = '0';
-    btn.style.right = '0';
-  }));
 
   // Show floating card
   card.style.display = 'block';
@@ -2409,37 +2383,19 @@ function openFavoriten() {
 function closeFavoriten(immediate) {
   if (!_favoritenOpen) return;
   _favoritenOpen = false;
-  const row  = document.getElementById('team-select-row');
   const btn  = document.getElementById('btn-favoriten-editor');
   const card = document.getElementById('favoriten-card');
 
   // Save current team selection as favorites
   localStorage.setItem(LS_AUSWAHL, JSON.stringify({ ...showTeams }));
 
+  btn.innerHTML = 'Meine<br>Favoriten<br>auswählen';
+  btn.classList.remove('open');
+
   if (immediate) {
     card.classList.remove('open');
     card.style.display = 'none';
-    btn.style.cssText = '';
-    btn.innerHTML = 'Meine<br>Favoriten<br>auswählen';
-    btn.classList.remove('open');
-    row.classList.remove('favoriten-open');
   } else {
-    // Animate btn back to original flex position
-    btn.style.transition = 'left 0.8s ease, right 0.8s ease';
-    btn.style.left  = _favoritenBtnLeft + 'px';
-    btn.style.right = _favoritenBtnRight + 'px';
-    let _cleanupDone = false;
-    function cleanup() {
-      if (_cleanupDone) return;
-      _cleanupDone = true;
-      btn.removeEventListener('transitionend', cleanup);
-      btn.style.cssText = '';
-      btn.innerHTML = 'Meine<br>Favoriten<br>auswählen';
-      btn.classList.remove('open');
-      row.classList.remove('favoriten-open');
-    }
-    btn.addEventListener('transitionend', cleanup);
-    setTimeout(cleanup, 900);
     card.classList.remove('open');
     setTimeout(() => { card.style.display = 'none'; }, 300);
   }
