@@ -3096,21 +3096,19 @@ async function loadStatistik() {
 }
 
 function parseLKList(html) {
+  // Table columns: 0=DGR, 1=LK, 2=ID, 3=Name (Jahrgang), 4=Bemerkung, 5=Nation, 6=Stichtags LK
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const map = {};
   doc.querySelectorAll('table tr').forEach(row => {
     if (row.querySelectorAll('th').length) return;
-    const cells = [...row.cells].map(c => c.textContent.trim());
-    let name = '', lk = '–';
-    for (let i = 0; i < cells.length; i++) {
-      const t = cells[i];
-      if (!name && t.includes(',') && /[a-zA-ZäöüÄÖÜß]{2}/.test(t) && !/^\d/.test(t)) {
-        name = t.split('\n')[0].trim();
-      } else if (name && lk === '–') {
-        const m = t.match(/^(?:LK\s*)?(\d{1,2}(?:[.,]\d)?)$/);
-        if (m) lk = m[1].replace(',', '.');
-      }
-    }
+    const cells = [...row.cells];
+    if (cells.length < 4) return;
+    const lkRaw  = cells[1].textContent.trim();
+    const nameFull = cells[3].textContent.trim().split('\n')[0].trim();
+    const lkM = lkRaw.match(/^LK(\d{1,2}(?:[.,]\d)?)$/);
+    if (!lkM || !nameFull.includes(',')) return;
+    const lk   = lkM[1].replace(',', '.');
+    const name = nameFull.replace(/\s*\(\d{4}\)\s*$/, '').trim();
     if (name) map[_normName(name)] = { name, lk, einzelWins: 0, einzelLosses: 0, doppelWins: 0, doppelLosses: 0 };
   });
   return map;
@@ -3219,7 +3217,7 @@ function _fmtStat(w, l) {
 
 function _fmtLK(lk) {
   const n = parseFloat(lk);
-  return isNaN(n) ? lk : n.toFixed(1).replace('.', ',');
+  return isNaN(n) ? lk : 'LK' + n.toFixed(1).replace('.', ',');
 }
 
 function renderStatistikTable(container) {
