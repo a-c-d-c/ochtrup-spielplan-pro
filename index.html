@@ -3353,7 +3353,7 @@ function renderMannschaftTable(container) {
       <td>${_fmtStat(t.gF, t.gA)}</td>
       <td>${_fmtStat(t.hF, t.hA)}</td>
       <td>${_fmtStat(t.aF, t.aA)}</td>
-      <td><button class="stat-rank-btn" onclick="showTable('${t.key}')">${esc(rankDisplay)}</button></td>
+      <td><button class="stat-rank-btn" onclick="backToList();showTable('${t.key}')">${esc(rankDisplay)}</button></td>
     </tr>`;
   }
   html += '</tbody></table>';
