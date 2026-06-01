@@ -3270,6 +3270,56 @@ function sortStatistik(col) {
   _statistikSort.col = col;
   renderStatistikTable(container);
 }
+
+/* ── Mannschaftsstatistik ───────────────────────────────────── */
+function loadMannschaft() {
+  const container = document.getElementById('mannschaft-container');
+  if (!container || container.dataset.loaded === '1') return;
+
+  if (!allMatches.length) {
+    container.innerHTML = '<div class="status-msg">Daten noch nicht geladen – bitte erneut öffnen.</div>';
+    return;
+  }
+  container.dataset.loaded = '1';
+
+  const teamMap = {};
+  for (const m of allMatches) {
+    if (!/^\d+:\d+$/.test(m.result || '')) continue;
+    const key = m.team;
+    if (!teamMap[key]) teamMap[key] = { label: m.label || m.team, gF: 0, gA: 0, hF: 0, hA: 0, aF: 0, aA: 0 };
+    const [r1, r2] = m.result.split(':').map(Number);
+    const cf = m.isHome ? r1 : r2;   // club score
+    const ca = m.isHome ? r2 : r1;   // opponent score
+    const pts = cf > ca ? [2, 0] : cf < ca ? [0, 2] : [1, 1];
+    teamMap[key].gF += pts[0]; teamMap[key].gA += pts[1];
+    if (m.isHome) { teamMap[key].hF += pts[0]; teamMap[key].hA += pts[1]; }
+    else          { teamMap[key].aF += pts[0]; teamMap[key].aA += pts[1]; }
+  }
+
+  const rows = Object.values(teamMap).sort((x, y) => {
+    const d = (y.gF - y.gA) - (x.gF - x.gA);
+    return d !== 0 ? d : x.label.localeCompare(y.label, 'de');
+  });
+
+  if (!rows.length) {
+    container.innerHTML = '<div class="status-msg">Keine abgeschlossenen Spiele.</div>';
+    return;
+  }
+
+  let html = `<table class="stat-table"><thead><tr>
+    <th>Mannschaft</th><th>Gesamt</th><th>Heim</th><th>Auswärts</th>
+  </tr></thead><tbody>`;
+  for (const t of rows) {
+    html += `<tr>
+      <td>${esc(t.label)}</td>
+      <td>${_fmtStat(t.gF, t.gA)}</td>
+      <td>${_fmtStat(t.hF, t.hA)}</td>
+      <td>${_fmtStat(t.aF, t.aA)}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
 </script>
 </body>
 </html>
