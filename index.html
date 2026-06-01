@@ -719,6 +719,7 @@
   .stat-table td { padding: 7px 6px; color: #c8cad8; border-bottom: 1px solid rgba(144,149,176,0.08); white-space: nowrap; }
   .stat-table td:first-child { color: #e8eaf0; white-space: normal; min-width: 100px; }
   .stat-table tr:last-child td { border-bottom: none; }
+  .stat-rank-btn { background: none; border: none; padding: 0; cursor: pointer; color: #7ec8e3; font-size: 0.78rem; font-family: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .stat-diff-pos  { color: #28a856; font-weight: 600; }
   .stat-diff-neg  { color: #e03838; }
   .stat-diff-zero { color: #9095b0; }
@@ -3272,6 +3273,9 @@ function sortStatistik(col) {
 }
 
 /* ── Mannschaftsstatistik ───────────────────────────────────── */
+let _mannschaftData = null;
+let _mannschaftSort = { col: 'gesamt', dir: -1 };
+
 function loadMannschaft() {
   const container = document.getElementById('mannschaft-container');
   if (!container || container.dataset.loaded === '1') return;
@@ -3286,39 +3290,86 @@ function loadMannschaft() {
   for (const m of allMatches) {
     if (!/^\d+:\d+$/.test(m.result || '')) continue;
     const key = m.team;
-    if (!teamMap[key]) teamMap[key] = { label: m.label || m.team, gF: 0, gA: 0, hF: 0, hA: 0, aF: 0, aA: 0 };
+    if (!teamMap[key]) teamMap[key] = { key, label: m.label || m.team, gF: 0, gA: 0, hF: 0, hA: 0, aF: 0, aA: 0 };
     const [r1, r2] = m.result.split(':').map(Number);
-    const cf = m.isHome ? r1 : r2;   // club score
-    const ca = m.isHome ? r2 : r1;   // opponent score
+    const cf = m.isHome ? r1 : r2;
+    const ca = m.isHome ? r2 : r1;
     const pts = cf > ca ? [2, 0] : cf < ca ? [0, 2] : [1, 1];
     teamMap[key].gF += pts[0]; teamMap[key].gA += pts[1];
     if (m.isHome) { teamMap[key].hF += pts[0]; teamMap[key].hA += pts[1]; }
     else          { teamMap[key].aF += pts[0]; teamMap[key].aA += pts[1]; }
   }
 
-  const rows = Object.values(teamMap).sort((x, y) => {
-    const d = (y.gF - y.gA) - (x.gF - x.gA);
-    return d !== 0 ? d : x.label.localeCompare(y.label, 'de');
-  });
+  _mannschaftData = Object.values(teamMap);
 
-  if (!rows.length) {
+  if (!_mannschaftData.length) {
     container.innerHTML = '<div class="status-msg">Keine abgeschlossenen Spiele.</div>';
     return;
   }
+  renderMannschaftTable(container);
+}
+
+function _mannschaftDiff(t, col) {
+  if (col === 'gesamt')    return t.gF - t.gA;
+  if (col === 'heim')      return t.hF - t.hA;
+  if (col === 'auswaerts') return t.aF - t.aA;
+  return 0;
+}
+
+function _mannschaftRank(t) {
+  const league = (typeof LEAGUES !== 'undefined') ? LEAGUES.find(l => l.team === t.key) : null;
+  return (league && league.rank) ? Number(league.rank) : 999;
+}
+
+function renderMannschaftTable(container) {
+  const col = _mannschaftSort.col;
+  const dir = _mannschaftSort.dir;
+  const data = [..._mannschaftData].sort((x, y) => {
+    let cmp;
+    if (col === 'name') {
+      cmp = x.label.localeCompare(y.label, 'de');
+    } else if (col === 'rang') {
+      cmp = _mannschaftRank(x) - _mannschaftRank(y);
+    } else {
+      cmp = _mannschaftDiff(x, col) - _mannschaftDiff(y, col);
+    }
+    return cmp !== 0 ? cmp * dir : x.label.localeCompare(y.label, 'de');
+  });
+
+  const th = (id, label) => {
+    const active = col === id;
+    const arrow  = active ? (dir === -1 ? ' sort-desc' : ' sort-asc') : '';
+    return `<th class="sortable${arrow}" onclick="sortMannschaft('${id}')">${label}</th>`;
+  };
 
   let html = `<table class="stat-table"><thead><tr>
-    <th>Mannschaft</th><th>Gesamt</th><th>Heim</th><th>Auswärts</th>
+    ${th('name','Mannschaft')}${th('gesamt','Gesamt')}${th('heim','Heim')}${th('auswaerts','Auswärts')}${th('rang','Rang')}
   </tr></thead><tbody>`;
-  for (const t of rows) {
+  for (const t of data) {
+    const rank = _mannschaftRank(t);
+    const rankDisplay = rank === 999 ? '–' : String(rank);
     html += `<tr>
       <td>${esc(t.label)}</td>
       <td>${_fmtStat(t.gF, t.gA)}</td>
       <td>${_fmtStat(t.hF, t.hA)}</td>
       <td>${_fmtStat(t.aF, t.aA)}</td>
+      <td><button class="stat-rank-btn" onclick="showTable('${t.key}')">${esc(rankDisplay)}</button></td>
     </tr>`;
   }
   html += '</tbody></table>';
   container.innerHTML = html;
+}
+
+function sortMannschaft(col) {
+  const container = document.getElementById('mannschaft-container');
+  if (!container || !_mannschaftData) return;
+  if (_mannschaftSort.col === col) {
+    _mannschaftSort.dir *= -1;
+  } else {
+    _mannschaftSort.dir = (col === 'name' || col === 'rang') ? 1 : -1;
+  }
+  _mannschaftSort.col = col;
+  renderMannschaftTable(container);
 }
 </script>
 </body>
