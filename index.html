@@ -3217,12 +3217,25 @@ function _fmtStat(w, l) {
   return `${w}:${l} <span class="${cls}">(${d > 0 ? '+' : ''}${d})</span>`;
 }
 
+function _fmtLK(lk) {
+  const n = parseFloat(lk);
+  return isNaN(n) ? lk : n.toFixed(1).replace('.', ',');
+}
+
 function renderStatistikTable(container) {
   const col = _statistikSort.col;
   const dir = _statistikSort.dir;
   const data = [..._statistikData].sort((a, b) => {
-    const d = (_statDiff(a, col) - _statDiff(b, col)) * dir;
-    return d !== 0 ? d : a.name.localeCompare(b.name);
+    let cmp;
+    if (col === 'name') {
+      cmp = a.name.localeCompare(b.name, 'de');
+    } else if (col === 'lk') {
+      const la = parseFloat(a.lk) || 99, lb = parseFloat(b.lk) || 99;
+      cmp = la - lb;
+    } else {
+      cmp = _statDiff(a, col) - _statDiff(b, col);
+    }
+    return cmp !== 0 ? cmp * dir : a.name.localeCompare(b.name, 'de');
   });
 
   const th = (id, label) => {
@@ -3232,14 +3245,14 @@ function renderStatistikTable(container) {
   };
 
   let html = `<table class="stat-table"><thead><tr>
-    <th>Name</th><th>LK</th>${th('gesamt','Gesamt')}${th('einzel','Einzel')}${th('doppel','Doppel')}
+    ${th('name','Name')}${th('lk','LK')}${th('gesamt','Gesamt')}${th('einzel','Einzel')}${th('doppel','Doppel')}
   </tr></thead><tbody>`;
 
   for (const p of data) {
     const gw = p.einzelWins + p.doppelWins, gl = p.einzelLosses + p.doppelLosses;
     html += `<tr>
       <td>${esc(p.name)}</td>
-      <td>${esc(p.lk)}</td>
+      <td>${esc(_fmtLK(p.lk))}</td>
       <td>${_fmtStat(gw, gl)}</td>
       <td>${_fmtStat(p.einzelWins, p.einzelLosses)}</td>
       <td>${_fmtStat(p.doppelWins, p.doppelLosses)}</td>
@@ -3252,7 +3265,11 @@ function renderStatistikTable(container) {
 function sortStatistik(col) {
   const container = document.getElementById('statistik-container');
   if (!container || !_statistikData) return;
-  _statistikSort.dir = _statistikSort.col === col ? _statistikSort.dir * -1 : -1;
+  if (_statistikSort.col === col) {
+    _statistikSort.dir *= -1;
+  } else {
+    _statistikSort.dir = (col === 'name' || col === 'lk') ? 1 : -1;
+  }
   _statistikSort.col = col;
   renderStatistikTable(container);
 }
