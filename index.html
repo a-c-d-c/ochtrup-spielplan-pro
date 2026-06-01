@@ -3088,7 +3088,7 @@ async function loadStatistik() {
     }
 
     _statistikData = Object.values(playerMap)
-      .filter(p => p.einzelWins + p.einzelLosses + p.doppelWins + p.doppelLosses > 0);
+      .filter(p => p.lk !== '–' && p.einzelWins + p.einzelLosses + p.doppelWins + p.doppelLosses > 0);
 
     renderStatistikTable(container);
   } catch(e) {
@@ -3145,8 +3145,7 @@ function _parseEinzel(cells, match, playerMap) {
     .filter(t => t.includes(',') && /[a-zA-ZäöüÄÖÜß]{2}/.test(t));
   if (nameCells.length < 2) return;
 
-  const clubCell = match.isHome ? nameCells[0] : nameCells[1];
-  const { name, lk } = _extractNameLK(clubCell);
+  const name = _extractName(match.isHome ? nameCells[0] : nameCells[1]);
   if (!name) return;
 
   const scores = cells.map(c => c.textContent.trim()).filter(t => /^\d+:\d+$/.test(t));
@@ -3154,7 +3153,7 @@ function _parseEinzel(cells, match, playerMap) {
 
   let cw = 0, ow = 0;
   scores.forEach(s => { const [a, b] = s.split(':').map(Number); (match.isHome ? a > b : b > a) ? cw++ : ow++; });
-  _addStat(playerMap, name, lk, 'einzel', cw > ow);
+  _addStat(playerMap, name, 'einzel', cw > ow);
 }
 
 function _parseDoppel(cells, match, playerMap) {
@@ -3176,29 +3175,22 @@ function _parseDoppel(cells, match, playerMap) {
   scores.forEach(s => { const [a, b] = s.split(':').map(Number); (match.isHome ? a > b : b > a) ? cw++ : ow++; });
   const won = cw > ow;
   players.forEach(raw => {
-    const { name, lk } = _extractNameLK(raw);
-    if (name) _addStat(playerMap, name, lk, 'doppel', won);
+    const name = _extractName(raw);
+    if (name) _addStat(playerMap, name, 'doppel', won);
   });
 }
 
-function _extractNameLK(txt) {
+function _extractName(txt) {
   txt = txt.replace(/^\d+\s*/, '').split('\n')[0].trim();
   const pi = txt.indexOf('(');
-  let name = pi >= 0 ? txt.slice(0, pi).trim() : txt;
-  let lk = '–';
-  if (pi >= 0) {
-    const inner = txt.slice(pi + 1, txt.indexOf(')', pi + 1));
-    const m = inner?.match(/(?:LK\s*)?(\d{1,2}(?:[.,]\d)?)/);
-    if (m) lk = m[1].replace(',', '.');
-  }
-  return { name: name.trim(), lk };
+  return (pi >= 0 ? txt.slice(0, pi) : txt).trim();
 }
 
 function _normName(n) { return n.toLowerCase().replace(/\s+/g, ' ').trim(); }
 
-function _addStat(playerMap, name, lk, type, won) {
+function _addStat(playerMap, name, type, won) {
   const key = _normName(name);
-  if (!playerMap[key]) playerMap[key] = { name, lk, einzelWins: 0, einzelLosses: 0, doppelWins: 0, doppelLosses: 0 };
+  if (!playerMap[key]) playerMap[key] = { name, lk: '–', einzelWins: 0, einzelLosses: 0, doppelWins: 0, doppelLosses: 0 };
   if (won) playerMap[key][type + 'Wins']++;
   else     playerMap[key][type + 'Losses']++;
 }
