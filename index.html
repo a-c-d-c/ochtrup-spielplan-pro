@@ -3185,7 +3185,10 @@ function _parseDoppel(cells, match, playerMap) {
 function _extractName(txt) {
   txt = txt.replace(/^\d+\s*/, '').split('\n')[0].trim();
   const pi = txt.indexOf('(');
-  return (pi >= 0 ? txt.slice(0, pi) : txt).trim();
+  let name = (pi >= 0 ? txt.slice(0, pi) : txt).trim();
+  // strip trailing nationality codes like "NED D", "RUS D", "POL"
+  name = name.replace(/\s+[A-Z]{2,3}(\s+[A-Z])?\s*$/, '').trim();
+  return name;
 }
 
 function _normName(n) { return n.toLowerCase().replace(/\s+/g, ' ').trim(); }
