@@ -3072,14 +3072,16 @@ async function loadStatistik() {
 
   try {
     const reportMatches = allMatches.filter(m => m.reportUrl && /^\d+:\d+$/.test(m.result || ''));
-    const LK_URL = 'https://wtv.liga.nu/cgi-bin/WebObjects/nuLigaTENDE.woa/wa/clubRankinglistLK?federation=WTV&club=2015325';
+    const LK_BASE = 'https://wtv.liga.nu/cgi-bin/WebObjects/nuLigaTENDE.woa/wa/clubRankinglistLK?federation=WTV&club=2015325';
 
-    const [lkHtml, ...reportResults] = await Promise.all([
-      fetchURL(LK_URL).catch(() => ''),
+    const [lkHerren, lkDamen, ...reportResults] = await Promise.all([
+      fetchURL(LK_BASE + '&gender=1').catch(() => ''),
+      fetchURL(LK_BASE + '&gender=0').catch(() => ''),
       ...reportMatches.map(m => fetchURL(m.reportUrl).catch(() => null))
     ]);
 
-    const playerMap = parseLKList(lkHtml);
+    const playerMap = parseLKList(lkHerren);
+    Object.assign(playerMap, parseLKList(lkDamen));
 
     for (let i = 0; i < reportMatches.length; i++) {
       if (reportResults[i]) parseReportStats(reportResults[i], reportMatches[i], playerMap);
