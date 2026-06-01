@@ -3105,13 +3105,15 @@ function parseLKList(html) {
     if (row.querySelectorAll('th').length) return;
     const cells = [...row.cells];
     if (cells.length < 4) return;
-    const lkRaw  = cells[1].textContent.trim();
-    const nameFull = cells[3].textContent.trim().split('\n')[0].trim();
+    const lkRaw   = cells[1].textContent.trim();
+    const cellTxt = cells[3].textContent.replace(/\s+/g, ' ').trim();
     const lkM = lkRaw.match(/^LK(\d{1,2}(?:[.,]\d)?)$/);
-    if (!lkM || !nameFull.includes(',')) return;
-    const lk   = lkM[1].replace(',', '.');
-    const name = nameFull.replace(/\s*\(\d{4}\)\s*$/, '').trim();
-    if (name) map[_normName(name)] = { name, lk, einzelWins: 0, einzelLosses: 0, doppelWins: 0, doppelLosses: 0 };
+    if (!lkM || !cellTxt.includes(',')) return;
+    const lk          = lkM[1].replace(',', '.');
+    const name        = cellTxt.replace(/\s*\(\d{4}\)\s*$/, '').trim();
+    const yearM       = cellTxt.match(/\((\d{4})\)/);
+    const displayName = yearM ? `${name} (${yearM[1]})` : name;
+    if (name) map[_normName(name)] = { name: displayName, lk, einzelWins: 0, einzelLosses: 0, doppelWins: 0, doppelLosses: 0 };
   });
   return map;
 }
