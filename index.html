@@ -719,7 +719,8 @@
   .stat-table td { padding: 7px 6px; color: #c8cad8; border-bottom: 1px solid rgba(144,149,176,0.08); white-space: nowrap; }
   .stat-table td:first-child { color: #e8eaf0; white-space: normal; min-width: 100px; }
   .stat-table tr:last-child td { border-bottom: none; }
-  .stat-rank-btn { background: none; border: none; padding: 0; cursor: pointer; color: #7ec8e3; font-size: 0.78rem; font-family: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .stat-rank-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 50px; background: rgba(200,202,216,0.15); border: none; cursor: pointer; color: #e8eaf0; font-size: 0.82rem; font-weight: 700; font-family: inherit; }
+  .stat-table td:last-child { text-align: center; }
   .stat-diff-pos  { color: #28a856; font-weight: 600; }
   .stat-diff-neg  { color: #e03838; }
   .stat-diff-zero { color: #9095b0; }
@@ -744,7 +745,7 @@
     font-weight: 600;
   }
   .card-time { font-size: 0.85rem; color: #c8cde4; margin-left: 4px; font-weight: 600; }
-  .card-countdown { flex: 1; display: flex; justify-content: center; align-items: center; font-size: 0.85rem; color: #c8cde4; font-weight: 600; white-space: nowrap; }
+  .card-countdown { flex: 1; display: flex; justify-content: center; align-items: center; font-size: 0.85rem; color: #c8cde4; font-weight: 600; white-space: nowrap; padding-right: 12px; }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
   .blink { animation: blink 1s step-end infinite; }
   .card-countdown.blink { animation: blink 1s step-end infinite; }
@@ -900,6 +901,7 @@
   #info-view .donate-custom-euro { color: #9095b0 !important; }
   #info-view .status-msg { color: #9095b0 !important; }
   #info-view .loading-row { color: #9095b0 !important; }
+  #info-view .detail-header { position: sticky; top: 0; background: #0f1117; z-index: 2; padding-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -1014,7 +1016,7 @@
 
 <div id="info-view">
   <div class="detail-header">
-    <button class="btn btn-filter on" id="btn-info-back" onclick="backToList()">Zurück</button>
+    <button class="btn btn-filter on" id="btn-info-back" onclick="backFromInfo()">Zurück</button>
   </div>
   <div class="info-content" id="info-content"></div>
   <div id="info-donate">
@@ -1079,6 +1081,8 @@ const LS_THEME       = 'spielplan-theme';
 const LS_OVERLAY_DARK  = 'spielplan-overlay-dark';
 const LS_OVERLAY_LIGHT = 'spielplan-overlay-light';
 const LS_STARTS      = 'spielplan-starts';
+const LS_HTML_CACHE  = 'spielplan-html-v1';
+const HTML_CACHE_TTL = 30 * 60 * 1000;
 
 const LIGHT_THEME_CSS = `
   html, body { background: #f0f2f8; }
@@ -1408,12 +1412,18 @@ function toggleAccordion(id) {
   const body = document.getElementById(id);
   if (!body) return;
   const isOpen = body.classList.contains('open');
-  document.querySelectorAll('#info-content .accordion-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('#info-content .accordion-body').forEach(b => {
+    b.classList.remove('open');
+    b.style.maxHeight = '';
+  });
   document.querySelectorAll('#info-content .accordion-btn').forEach(b => b.classList.remove('open'));
   if (!isOpen) {
     body.classList.add('open');
     const btn = document.querySelector('#info-content .accordion-btn[data-target="' + id + '"]');
     if (btn) btn.classList.add('open');
+    body.addEventListener('transitionend', () => {
+      if (body.classList.contains('open')) body.style.maxHeight = 'none';
+    }, { once: true });
   }
 }
 
@@ -1468,16 +1478,15 @@ function setTheme(theme) {
 
 // Kategorie-Paletten — hell → dunkel (jung → alt)
 const PALETTE_JUGEND = [
-  [155, 210, 255], // sehr helles Blau (U8)
-  [128, 193, 252],
-  [102, 175, 248],
-  [ 78, 156, 240],
-  [ 58, 136, 228],
-  [ 40, 115, 212],
-  [ 26,  95, 192],
-  [ 15,  76, 170],
-  [  8,  58, 146],
-  [  3,  42, 122], // tiefstes Blau (U18+)
+  [130, 230, 148], // sehr helles Grün (U8)
+  [ 92, 208, 118],
+  [ 65, 188,  95],
+  [ 42, 168,  75],
+  [ 25, 148,  58],
+  [ 16, 130,  46],
+  [ 10, 112,  36],
+  [  6,  94,  28],
+  [  3,  78,  22], // tiefstes Grün (U18+)
 ];
 const PALETTE_DAMEN = [
   [255, 178, 205],
@@ -1488,15 +1497,16 @@ const PALETTE_DAMEN = [
   [158,  22,  70],
 ];
 const PALETTE_HERREN = [
-  [130, 230, 148],
-  [ 92, 208, 118],
-  [ 65, 188,  95],
-  [ 42, 168,  75],
-  [ 25, 148,  58],
-  [ 16, 130,  46],
-  [ 10, 112,  36],
-  [  6,  94,  28],
-  [  3,  78,  22],
+  [155, 210, 255], // sehr helles Blau
+  [128, 193, 252],
+  [102, 175, 248],
+  [ 78, 156, 240],
+  [ 58, 136, 228],
+  [ 40, 115, 212],
+  [ 26,  95, 192],
+  [ 15,  76, 170],
+  [  8,  58, 146],
+  [  3,  42, 122], // tiefstes Blau
 ];
 const PALETTE_GEMISCHT = [
   [255, 225,  80],
@@ -1549,9 +1559,9 @@ function buildTeamCSS(leagues, theme) {
   function toHex(rgb) { return '#' + rgb.map(x=>x.toString(16).padStart(2,'0')).join(''); }
   return leagues.map(l => {
     let [r,g,b] = l.color;
-    if (isJugend(l.label))            [r,g,b] = [  3, 42,122];
+    if (isJugend(l.label))            [r,g,b] = [  3, 78, 22];
     else if (/damen/i.test(l.label))  [r,g,b] = [220, 80,130];
-    else if (/herren/i.test(l.label)) [r,g,b] = [  3, 78, 22];
+    else if (/herren/i.test(l.label)) [r,g,b] = [  3, 42,122];
     const br = Math.round(r*0.5+130), bg = Math.round(g*0.5+130), bb = Math.round(b*0.5+130);
     const bright  = '#' + [br,bg,bb].map(x=>Math.min(255,x).toString(16).padStart(2,'0')).join('');
     const cardBg  = toHex(blend(base, [r,g,b], 0.38));
@@ -1772,6 +1782,21 @@ let showTeams   = _state.showTeams;
 let selectMode  = _state.selectMode;
 const leagueHtml = {};
 
+function getCachedHtml(key) {
+  try {
+    const raw = localStorage.getItem(LS_HTML_CACHE + key);
+    if (!raw) return null;
+    const { ts, html } = JSON.parse(raw);
+    return Date.now() - ts < HTML_CACHE_TTL ? html : null;
+  } catch { return null; }
+}
+function setCachedHtml(key, html) {
+  try { localStorage.setItem(LS_HTML_CACHE + key, JSON.stringify({ ts: Date.now(), html })); } catch {}
+}
+function clearHtmlCache() {
+  Object.keys(localStorage).filter(k => k.startsWith(LS_HTML_CACHE)).forEach(k => localStorage.removeItem(k));
+}
+
 /* ── Fetch ─────────────────────────────────────────────────── */
 async function fetchURL(targetUrl) {
   const encoded = encodeURIComponent(targetUrl);
@@ -1795,21 +1820,22 @@ async function fetchURL(targetUrl) {
       .catch(e => { clearTimeout(timer); throw e; });
   }
 
-  /* Runde 1: allorigins + codetabs gleichzeitig (zwei verschiedene Dienste) */
-  const c1 = new AbortController(), c2 = new AbortController();
+  /* Runde 1: drei Proxies gleichzeitig – erster Treffer gewinnt */
+  const c1 = new AbortController(), c2 = new AbortController(), c3 = new AbortController();
   try {
     const result = await Promise.any([
-      tryProxy('https://api.allorigins.win/get?url=' + encoded,      true,  c1, 10000),
-      tryProxy('https://api.codetabs.com/v1/proxy?quest=' + encoded, false, c2, 10000),
+      tryProxy('https://api.allorigins.win/get?url=' + encoded,      true,  c1, 8000),
+      tryProxy('https://api.codetabs.com/v1/proxy?quest=' + encoded, false, c2, 8000),
+      tryProxy('https://corsproxy.io/?' + encoded,                   false, c3, 8000),
     ]);
-    c1.abort(); c2.abort();
+    c1.abort(); c2.abort(); c3.abort();
     return result;
   } catch {}
 
   /* Runde 2: letzter Fallback mit allorigins/raw */
-  const c3 = new AbortController();
+  const c4 = new AbortController();
   try {
-    return await tryProxy('https://api.allorigins.win/raw?url=' + encoded, false, c3, 12000);
+    return await tryProxy('https://api.allorigins.win/raw?url=' + encoded, false, c4, 10000);
   } catch(e) {
     throw new Error('Alle Proxies fehlgeschlagen (' + (e.message || '') + ')');
   }
@@ -2002,54 +2028,92 @@ function extractClubRank(html) {
   return null;
 }
 
-async function loadAllData() {
-  const errBanner = document.getElementById('error-banner');
+async function loadAllData(forceRefresh = false) {
+  const errBanner  = document.getElementById('error-banner');
   const loadBanner = document.getElementById('loading-banner');
   const refreshBtn = document.getElementById('btn-refresh');
+  const ui         = document.getElementById('update-info');
 
   errBanner.style.display  = 'none';
   loadBanner.style.display = 'none';
-  const mc    = document.getElementById('matches-container');
-  const nmBox = document.getElementById('next-match-box');
-  mc.innerHTML = '';
-  mc.style.opacity = '0';
-  mc.style.pointerEvents = 'none';
-  document.getElementById('controls-slider').style.pointerEvents = 'none';
-  document.getElementById('update-info').style.display = 'none';
-
-  /* Ladeindikator im Nächstes-Spiel-Container anzeigen */
-  LEAGUES.forEach(l => nmBox.classList.remove(l.team));
-  nmBox.classList.remove('home-game');
-  nmBox.classList.add('no-match');
-  nmBox.style.transition = '';
-  nmBox.style.display = 'flex';
-  nmBox.style.opacity = '1';
-  document.getElementById('nm-league').textContent = '';
-  document.getElementById('nm-league').className   = 'nm-league';
-  document.getElementById('nm-date').innerHTML     = '';
-  document.getElementById('nm-days').textContent   = '';
-  document.getElementById('nm-unit').textContent   = '';
-  const nmTeams = document.getElementById('nm-teams');
-  nmTeams.style.flexDirection  = 'column';
-  nmTeams.style.justifyContent = 'center';
-  nmTeams.style.marginTop      = '-3rem';
-  nmTeams.innerHTML = '<div class="loading-row" style="justify-content:center"><div class="spinner"></div>Spieldaten werden geladen …</div>';
+  ui.style.display = 'none';
   refreshBtn.disabled = true;
   refreshBtn.classList.add('spinning');
 
-  /* Alle Ligen parallel laden – jede wird sofort angezeigt sobald sie fertig ist */
+  const mc    = document.getElementById('matches-container');
+  const nmBox = document.getElementById('next-match-box');
+  LEAGUES.forEach(l => nmBox.classList.remove(l.team));
+  nmBox.classList.remove('home-game');
+
   allMatches = [];
   const errors = [];
 
+  /* Phase 1: gecachte HTML sofort rendern */
+  if (!forceRefresh) {
+    for (const league of LEAGUES) {
+      const cached = getCachedHtml(league.team);
+      if (cached) {
+        leagueHtml[league.team] = cached;
+        league.rank = extractClubRank(cached);
+        const rankEl = document.getElementById('rank-' + league.team);
+        if (rankEl && league.rank) rankEl.textContent = 'Rang ' + league.rank;
+        allMatches = [...allMatches, ...parseLeague(cached, league)].sort((a, b) => a.date - b.date);
+      }
+    }
+  }
+
+  if (allMatches.length) {
+    /* Cache vorhanden → sofort sichtbar, Update-Hinweis zeigen */
+    mc.style.opacity = '1';
+    mc.style.pointerEvents = '';
+    document.getElementById('controls-slider').style.pointerEvents = '';
+    nmBox.style.transition = '';
+    nmBox.style.display = 'flex';
+    nmBox.style.opacity = '1';
+    renderNextMatch();
+    renderMatches();
+    ui.textContent = 'Wird aktualisiert …';
+    ui.style.display = 'block';
+  } else {
+    /* Kein Cache → Lade-Spinner anzeigen */
+    mc.innerHTML = '';
+    mc.style.opacity = '0';
+    mc.style.pointerEvents = 'none';
+    document.getElementById('controls-slider').style.pointerEvents = 'none';
+    nmBox.classList.add('no-match');
+    nmBox.style.transition = '';
+    nmBox.style.display = 'flex';
+    nmBox.style.opacity = '1';
+    document.getElementById('nm-league').textContent = '';
+    document.getElementById('nm-league').className   = 'nm-league';
+    document.getElementById('nm-date').innerHTML     = '';
+    document.getElementById('nm-days').textContent   = '';
+    document.getElementById('nm-unit').textContent   = '';
+    const nmTeams = document.getElementById('nm-teams');
+    nmTeams.style.flexDirection  = 'column';
+    nmTeams.style.justifyContent = 'center';
+    nmTeams.style.marginTop      = '-3rem';
+    nmTeams.innerHTML = '<div class="loading-row" style="justify-content:center"><div class="spinner"></div>Spieldaten werden geladen …</div>';
+  }
+
+  const hadCache = allMatches.length > 0;
+
+  /* Phase 2: frische Daten laden, progressiv rendern */
   async function loadLeague(league, attempt) {
     try {
       const html = await fetchURL(league.url);
+      setCachedHtml(league.team, html);
       leagueHtml[league.team] = html;
       league.rank = extractClubRank(html);
       const rankEl = document.getElementById('rank-' + league.team);
-      if (rankEl && league.rank) rankEl.textContent = 'Rang ' + league.rank;
-      allMatches = [...allMatches, ...parseLeague(html, league)]
-        .sort((a, b) => a.date - b.date);
+      if (rankEl && league.rank) rankEl.textContent = 'Rang ' + league.rank;
+      allMatches = allMatches.filter(m => m.team !== league.team);
+      allMatches = [...allMatches, ...parseLeague(html, league)].sort((a, b) => a.date - b.date);
+      mc.style.opacity = '1';
+      mc.style.pointerEvents = '';
+      document.getElementById('controls-slider').style.pointerEvents = '';
+      renderNextMatch();
+      renderMatches();
     } catch(e) {
       if (attempt < 3) {
         await new Promise(r => setTimeout(r, 1200 * attempt));
@@ -2057,11 +2121,11 @@ async function loadAllData() {
       }
       errors.push(league.label + ': ' + e.message);
       const rankEl = document.getElementById('rank-' + league.team);
-      if (rankEl) rankEl.textContent = '⚠';
+      if (rankEl && !leagueHtml[league.team]) rankEl.textContent = '⚠';
     }
   }
 
-  /* 3 Worker, 300ms Pause — Balance zwischen Geschwindigkeit und Proxy-Rate-Limit */
+  /* 3 Worker, 300ms Pause */
   const queue = [...LEAGUES];
   const workers = Array(3).fill(null).map(async () => {
     while (queue.length) {
@@ -2077,24 +2141,21 @@ async function loadAllData() {
   refreshBtn.disabled = false;
   refreshBtn.classList.remove('spinning');
 
-  if (errors.length) {
-    errBanner.innerHTML =
-      '<strong>⚠ Fehler beim Laden:</strong><br>' + errors.join('<br>');
-    errBanner.style.display = 'block';
-  }
-
   if (!allMatches.length) {
     errBanner.innerHTML =
       '<strong>⚠ Keine Spieldaten gefunden</strong><br>' +
       'Mögliche Ursache: liga.nu blockiert den CORS-Proxy.<br>' +
       errors.join('<br>');
     errBanner.style.display = 'block';
-    document.getElementById('matches-container').innerHTML = '';
     renderNextMatch();
     return;
   }
 
-  const ui = document.getElementById('update-info');
+  if (errors.length) {
+    errBanner.innerHTML = '<strong>⚠ Fehler beim Laden:</strong><br>' + errors.join('<br>');
+    errBanner.style.display = 'block';
+  }
+
   const now = new Date();
   const loaded = LEAGUES.filter(l => leagueHtml[l.team]).length;
   const missing = LEAGUES.filter(l => !leagueHtml[l.team]).map(l => l.label).join(', ');
@@ -2105,24 +2166,29 @@ async function loadAllData() {
     (missing ? ' · Fehlend: ' + missing : '');
   ui.style.display = 'block';
 
-  mc.style.pointerEvents = '';
-  document.getElementById('controls-slider').style.pointerEvents = '';
-  nmBox.style.transition = 'opacity 2s ease';
-  nmBox.style.opacity = '0';
-  renderNextMatch();
-  renderMatches();
   scheduleAutoRefresh();
-  requestAnimationFrame(() => {
+
+  if (!hadCache) {
+    /* Erster Load ohne Cache: sanftes Einblenden */
+    nmBox.style.transition = 'opacity 2s ease';
+    nmBox.style.opacity = '0';
+    renderNextMatch();
+    renderMatches();
     requestAnimationFrame(() => {
-      mc.style.opacity = '1'; nmBox.style.opacity = '1';
-      if (_pwaHintPending) {
-        _pwaHintPending = false;
-        mc.addEventListener('transitionend', () => {
-          document.getElementById('controls-inner').style.transform = 'translateX(0)';
-        }, { once: true });
-      }
+      requestAnimationFrame(() => {
+        mc.style.opacity = '1'; nmBox.style.opacity = '1';
+        if (_pwaHintPending) {
+          _pwaHintPending = false;
+          mc.addEventListener('transitionend', () => {
+            document.getElementById('controls-inner').style.transform = 'translateX(0)';
+          }, { once: true });
+        }
+      });
     });
-  });
+  } else if (_pwaHintPending) {
+    _pwaHintPending = false;
+    document.getElementById('controls-inner').style.transform = 'translateX(0)';
+  }
 }
 
 /* ── Nächstes Spiel ────────────────────────────────────────── */
@@ -2521,7 +2587,7 @@ function closeFavoriten(immediate) {
   renderMatches();
 }
 
-async function refreshData() { localStorage.removeItem(LS_LEAGUES); await initLeagues(); await loadAllData(); }
+async function refreshData() { clearHtmlCache(); localStorage.removeItem(LS_LEAGUES); await initLeagues(); await loadAllData(true); }
 
 /* ── Auto-Refresh laufende Spiele (alle 15 min, nur bei laufenden Spielen) */
 let _autoRefreshTimer = null;
@@ -2680,6 +2746,7 @@ async function showTable(team) {
 }
 
 function backToList() {
+  if (_navStack.length) { _navStack.pop()(); return; }
   clearTimeout(_settingsCloseTimer);
   document.getElementById('detail-view').style.display = 'none';
   document.getElementById('report-view').style.display = 'none';
@@ -2694,6 +2761,12 @@ function backToList() {
   document.getElementById('controls-slider').style.display = '';
   unlockBodyScroll();
   renderNextMatch();
+}
+
+function backFromInfo() {
+  const openBody = document.querySelector('#info-content .accordion-body.open');
+  if (openBody) { toggleAccordion(openBody.id); return; }
+  backToList();
 }
 
 async function showInfo(openAccordion) {
@@ -2729,9 +2802,17 @@ async function showInfo(openAccordion) {
 
 let _reportTeam = '';
 let _groupMatchMap = {};
+const _navStack = [];
 
 async function showReport(team, reportUrl, matchObj) {
   _reportTeam = team;
+  const fromDetail = document.getElementById('detail-view').style.display === 'block';
+  if (fromDetail) {
+    _navStack.push(() => {
+      document.getElementById('report-view').style.display = 'none';
+      document.getElementById('detail-view').style.display = 'block';
+    });
+  }
   document.getElementById('matches-container').style.display = 'none';
   document.getElementById('update-info').style.display = 'none';
   document.getElementById('detail-view').style.display = 'none';
@@ -2763,8 +2844,24 @@ function fitReportTeams() {
 }
 
 function showTableFromReport() {
+  _navStack.push(() => {
+    document.getElementById('detail-view').style.display = 'none';
+    document.getElementById('report-view').style.display = 'flex';
+  });
   document.getElementById('report-view').style.display = 'none';
   showTable(_reportTeam);
+}
+
+function showTableFromInfo(team) {
+  _navStack.push(() => {
+    document.getElementById('detail-view').style.display = 'none';
+    document.getElementById('matches-container').style.display = 'none';
+    document.getElementById('update-info').style.display = 'none';
+    document.getElementById('controls-slider').style.display = 'none';
+    document.getElementById('info-view').style.display = 'block';
+  });
+  document.getElementById('info-view').style.display = 'none';
+  showTable(team);
 }
 
 function renderReport(html, m) {
@@ -3103,8 +3200,8 @@ async function loadStatistik() {
       if (reportResults[i]) parseReportStats(reportResults[i], reportMatches[i], playerMap);
     }
 
-    _statistikData = Object.values(playerMap)
-      .filter(p => p.lk !== '–' && p.einzelWins + p.einzelLosses + p.doppelWins + p.doppelLosses > 0);
+    _statistikData = Object.values(playerMap).filter(p =>
+      p.lk !== '–' || p.einzelWins + p.einzelLosses + p.doppelWins + p.doppelLosses > 0);
 
     renderStatistikTable(container);
   } catch(e) {
@@ -3125,11 +3222,11 @@ function parseLKList(html) {
     const cellTxt = cells[3].textContent.replace(/\s+/g, ' ').trim();
     const lkM = lkRaw.match(/^LK(\d{1,2}(?:[.,]\d)?)$/);
     if (!lkM || !cellTxt.includes(',')) return;
-    const lk          = lkM[1].replace(',', '.');
-    const name        = cellTxt.replace(/\s*\(\d{4}\)\s*$/, '').trim();
-    const yearM       = cellTxt.match(/\((\d{4})\)/);
-    const displayName = yearM ? `${name} (${yearM[1]})` : name;
-    if (name) map[_normName(name)] = { name: displayName, lk, einzelWins: 0, einzelLosses: 0, doppelWins: 0, doppelLosses: 0 };
+    const lk    = lkM[1].replace(',', '.');
+    const name  = cellTxt.replace(/\s*\(\d{4}\)\s*$/, '').trim();
+    const yearM = cellTxt.match(/\((\d{4})\)/);
+    const year  = yearM ? yearM[1] : '';
+    if (name) map[_normName(name)] = { name, year, lk, einzelWins: 0, einzelLosses: 0, doppelWins: 0, doppelLosses: 0 };
   });
   return map;
 }
@@ -3232,7 +3329,7 @@ function _fmtStat(w, l) {
 
 function _fmtLK(lk) {
   const n = parseFloat(lk);
-  return isNaN(n) ? lk : 'LK' + n.toFixed(1).replace('.', ',');
+  return isNaN(n) ? lk : n.toFixed(1).replace('.', ',');
 }
 
 function renderStatistikTable(container) {
@@ -3245,6 +3342,9 @@ function renderStatistikTable(container) {
     } else if (col === 'lk') {
       const la = parseFloat(a.lk) || 99, lb = parseFloat(b.lk) || 99;
       cmp = la - lb;
+    } else if (col === 'jahrg') {
+      const ya = a.year || '9999', yb = b.year || '9999';
+      cmp = ya.localeCompare(yb);
     } else {
       cmp = _statDiff(a, col) - _statDiff(b, col);
     }
@@ -3258,13 +3358,14 @@ function renderStatistikTable(container) {
   };
 
   let html = `<table class="stat-table"><thead><tr>
-    ${th('name','Name')}${th('lk','LK')}${th('gesamt','Gesamt')}${th('einzel','Einzel')}${th('doppel','Doppel')}
+    ${th('name','Name')}${th('jahrg','Jahrg.')}${th('lk','LK')}${th('gesamt','Gesamt')}${th('einzel','Einzel')}${th('doppel','Doppel')}
   </tr></thead><tbody>`;
 
   for (const p of data) {
     const gw = p.einzelWins + p.doppelWins, gl = p.einzelLosses + p.doppelLosses;
     html += `<tr>
-      <td>${esc(p.name)}</td>
+      <td>${(ci => esc(ci >= 0 ? p.name.slice(0, ci) : p.name) + '<br><span style="font-size:0.72rem;opacity:0.75">' + esc(ci >= 0 ? p.name.slice(ci + 1).trim() : '') + '</span>')(p.name.indexOf(','))}</td>
+      <td>${esc(p.year || '–')}</td>
       <td>${esc(_fmtLK(p.lk))}</td>
       <td>${_fmtStat(gw, gl)}</td>
       <td>${_fmtStat(p.einzelWins, p.einzelLosses)}</td>
@@ -3281,7 +3382,7 @@ function sortStatistik(col) {
   if (_statistikSort.col === col) {
     _statistikSort.dir *= -1;
   } else {
-    _statistikSort.dir = (col === 'name' || col === 'lk') ? 1 : -1;
+    _statistikSort.dir = (col === 'name' || col === 'lk' || col === 'jahrg') ? 1 : -1;
   }
   _statistikSort.col = col;
   renderStatistikTable(container);
@@ -3368,7 +3469,7 @@ function renderMannschaftTable(container) {
       <td>${_fmtStat(t.gF, t.gA)}</td>
       <td>${_fmtStat(t.hF, t.hA)}</td>
       <td>${_fmtStat(t.aF, t.aA)}</td>
-      <td><button class="stat-rank-btn" onclick="backToList();showTable('${t.key}')">${esc(rankDisplay)}</button></td>
+      <td><button class="stat-rank-btn" onclick="showTableFromInfo('${t.key}')">${esc(rankDisplay)}</button></td>
     </tr>`;
   }
   html += '</tbody></table>';
