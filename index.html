@@ -2637,7 +2637,7 @@ function parseStandingsTable(html) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   for (const table of doc.querySelectorAll('table')) {
     const text = table.textContent;
-    if (text.includes('Rang') && text.includes('Mannschaft')) return table;
+    if (text.includes('Rang') && (text.includes('Mannschaft') || text.includes('Verein'))) return table;
   }
   return null;
 }
@@ -2671,34 +2671,39 @@ async function showTable(team) {
 
   const html = leagueHtml[team];
   const table = parseStandingsTable(html);
-  if (!table) { alert('Tabelle noch nicht verfügbar.'); return; }
-
-  const rows = [...table.querySelectorAll('tr')];
-  let tableHtml = '<table class="standings-table"><thead>';
-
-  for (const row of rows) {
-    const isHeader = row.querySelectorAll('th').length > 0;
-    if (isHeader) {
-      const cells = [...row.querySelectorAll('th')];
-      tableHtml += '<tr>' + cells.map(c => `<th>${esc(c.textContent.trim())}</th>`).join('') + '</tr>';
-      tableHtml += '</thead><tbody>';
-    } else {
-      const cells = [...row.querySelectorAll('td')];
-      if (cells.length < 3) continue;
-      const rowText = row.textContent;
-      const isClub = rowText.includes(CLUB_NAME);
-      tableHtml += `<tr${isClub ? ' class="club-row"' : ''}>`;
-      tableHtml += cells.map(c => `<td>${esc(c.textContent.trim())}</td>`).join('');
-      tableHtml += '</tr>';
-    }
+  if (!table) {
+    document.getElementById('detail-table-container').innerHTML =
+      '<div class="status-msg">Tabelle noch nicht verfügbar.</div>';
   }
-  tableHtml += '</tbody></table>';
 
-  document.getElementById('detail-title').innerHTML =
-    `<span class="detail-title-label">${esc(league.label)}</span>` +
-    `<span class="detail-title-sub">Tabelle · Spielplan</span>` +
-    `<span class="detail-title-suffix">Tabelle · Spielplan</span>`;
-  document.getElementById('detail-table-container').innerHTML = tableHtml;
+  if (table) {
+    const rows = [...table.querySelectorAll('tr')];
+    let tableHtml = '<table class="standings-table"><thead>';
+
+    for (const row of rows) {
+      const isHeader = row.querySelectorAll('th').length > 0;
+      if (isHeader) {
+        const cells = [...row.querySelectorAll('th')];
+        tableHtml += '<tr>' + cells.map(c => `<th>${esc(c.textContent.trim())}</th>`).join('') + '</tr>';
+        tableHtml += '</thead><tbody>';
+      } else {
+        const cells = [...row.querySelectorAll('td')];
+        if (cells.length < 3) continue;
+        const rowText = row.textContent;
+        const isClub = rowText.includes(CLUB_NAME);
+        tableHtml += `<tr${isClub ? ' class="club-row"' : ''}>`;
+        tableHtml += cells.map(c => `<td>${esc(c.textContent.trim())}</td>`).join('');
+        tableHtml += '</tr>';
+      }
+    }
+    tableHtml += '</tbody></table>';
+
+    document.getElementById('detail-title').innerHTML =
+      `<span class="detail-title-label">${esc(league.label)}</span>` +
+      `<span class="detail-title-sub">Tabelle · Spielplan</span>` +
+      `<span class="detail-title-suffix">Tabelle · Spielplan</span>`;
+    document.getElementById('detail-table-container').innerHTML = tableHtml;
+  }
 
   // Alle Spiele der Gruppe (kompletter Gruppenspielplan)
   const allGroupMatches = parseLeagueAll(html, league);
@@ -3336,6 +3341,10 @@ function renderStatistikTable(container) {
   const col = _statistikSort.col;
   const dir = _statistikSort.dir;
   const data = [..._statistikData].sort((a, b) => {
+    const aPlayed = a.einzelWins + a.einzelLosses + a.doppelWins + a.doppelLosses;
+    const bPlayed = b.einzelWins + b.einzelLosses + b.doppelWins + b.doppelLosses;
+    if (aPlayed === 0 && bPlayed > 0) return 1;
+    if (bPlayed === 0 && aPlayed > 0) return -1;
     let cmp;
     if (col === 'name') {
       cmp = a.name.localeCompare(b.name, 'de');
