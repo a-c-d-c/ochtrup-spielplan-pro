@@ -255,6 +255,7 @@
   .btn-meine-favoriten { color: rgba(190,155,70,0.45); border-color: rgba(190,155,70,0.22); -webkit-touch-callout: none; touch-action: none; }
   .btn-meine-favoriten.on { color: #d4b054 !important; border-color: #a07830 !important; background: rgba(170,130,50,0.18) !important; font-weight: 700; }
   .team-btn-rank { font-size: 0.75rem; opacity: 0.7; white-space: nowrap; margin-left: 8px; flex-shrink: 0; cursor: pointer; text-decoration: underline dotted; }
+  .team-btn-rank.rank-error { color: #ff8888; opacity: 1; font-weight: 600; text-decoration: none; }
   #team-btns-container { display: flex; flex-direction: column; gap: 8px; }
   #team-btns-container .btn { position: relative; isolation: isolate; width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 10px 13px; font-size: 0.88rem; white-space: normal; }
   #team-btns-container .btn::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: rgba(255,255,255,var(--overlay-dark)); pointer-events: none; z-index: -1; }
@@ -1593,6 +1594,7 @@ function buildTeamButtons() {
     btn.id        = 'btn-' + l.team;
     btn.innerHTML = '<span>' + esc(l.label) + (l.sublabel ? '<br><span style="font-size:0.78rem;opacity:0.8">' + esc(l.sublabel) + '</span>' : '') + '</span><span class="team-btn-rank" id="rank-' + l.team + '"></span>';
     btn.querySelector('.team-btn-rank').addEventListener('click', () => {
+      if (l.fetchError) { retryTeam(l); return; }
       if (!l.rank) return;
       if (_favoritenOpen) closeFavoriten(true);
       showTable(l.team);
@@ -2120,8 +2122,12 @@ async function loadAllData(forceRefresh = false) {
         return loadLeague(league, attempt + 1);
       }
       errors.push(league.label + ': ' + e.message);
+      league.fetchError = true;
       const rankEl = document.getElementById('rank-' + league.team);
-      if (rankEl && !leagueHtml[league.team]) rankEl.textContent = '⚠';
+      if (rankEl && !leagueHtml[league.team]) {
+        rankEl.textContent = '⚠ neu laden';
+        rankEl.classList.add('rank-error');
+      }
     }
   }
 
@@ -2188,6 +2194,28 @@ async function loadAllData(forceRefresh = false) {
   } else if (_pwaHintPending) {
     _pwaHintPending = false;
     document.getElementById('controls-inner').style.transform = 'translateX(0)';
+  }
+}
+
+async function retryTeam(league) {
+  const rankEl = document.getElementById('rank-' + league.team);
+  if (rankEl) { rankEl.textContent = '…'; rankEl.classList.remove('rank-error'); }
+  try {
+    const html = await fetchURL(league.url);
+    setCachedHtml(league.team, html);
+    leagueHtml[league.team] = html;
+    league.rank = extractClubRank(html);
+    league.fetchError = false;
+    if (rankEl) {
+      rankEl.textContent = league.rank ? 'Rang ' + league.rank : '';
+      rankEl.classList.remove('rank-error');
+    }
+    allMatches = allMatches.filter(m => m.team !== league.team);
+    allMatches = [...allMatches, ...parseLeague(html, league)].sort((a, b) => a.date - b.date);
+    renderNextMatch(); renderMatches();
+  } catch(e) {
+    league.fetchError = true;
+    if (rankEl) { rankEl.textContent = '⚠ neu laden'; rankEl.classList.add('rank-error'); }
   }
 }
 
